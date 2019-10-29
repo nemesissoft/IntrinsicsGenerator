@@ -189,7 +189,7 @@ namespace Fast
                            )
                             methods.Add((ns, className, instr, method));
                         else
-                            Console.Error.WriteLine($"Not handled: {className}.{method.Identifier.Text}");
+                            Console.Error.WriteLine($"Not handled: {className}.{method.Identifier.Text}{method.ParameterList}");
                     }
                 }
             }
