@@ -2,6 +2,7 @@
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using static Fast.Intrinsics;
+using static System.Runtime.Intrinsics.Vector128<int>;
 
 namespace IntrinsicsGenerator
 {
@@ -14,7 +15,7 @@ namespace IntrinsicsGenerator
 
             fixed (int* pSource = source)
             {
-                var vecResult = System.Runtime.Intrinsics.Vector128<int>.Zero;
+                var vecResult = Zero;
 
                 int i = 0;
                 int lastBlockIndex = source.Length - (source.Length % 4);
