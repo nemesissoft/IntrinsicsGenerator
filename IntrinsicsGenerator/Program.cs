@@ -23,7 +23,7 @@ namespace IntrinsicsGenerator
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant |
             RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled
         );
-        
+
         static void Main(string[] args)
         {
             if (args?.Length != 2 || !(args[0] is { } dir) || !Directory.Exists(dir) || !(args[1] is { } outFile))
@@ -120,8 +120,8 @@ namespace Fast
                     );
 
 
-                    newMethod = trivia.Count > index + 1 
-                        ? newMethod.WithLeadingTrivia(trivia.Skip(index + 1)) 
+                    newMethod = trivia.Count > index + 1
+                        ? newMethod.WithLeadingTrivia(trivia.Skip(index + 1))
                         : newMethod.WithLeadingTrivia(SF.Tab, SF.Tab);
                 }
 
