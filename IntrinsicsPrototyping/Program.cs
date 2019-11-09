@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+using System.Security.Cryptography;
+using System.Text;
 using static Fast.Intrinsics;
 
 namespace IntrinsicsPrototyping
@@ -8,32 +12,51 @@ namespace IntrinsicsPrototyping
     {
         static void Main(string[] args)
         {
-            avx_xorshift128plus_key_t mykey;
-            avx_xorshift128plus_init(324, 4444, &mykey);
+            XorShiftState mykey = XorShiftState.NewState(324, 4444);
 
-            var distr = new uint[uint.MaxValue / 100000000+1];
-            var answer = new uint[1024*4];
+
+            var distr = new uint[uint.MaxValue / 100000000 + 1];
+            var answer = new uint[1024 * 4];
             fixed (uint* pA = answer)
             {
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < 1; i++)
                 {
-                    populateRandom_avx_xorshift128plus(&mykey, pA, 1024*4);
-                    for (int j = 0; j < 1024*4; j++)
+                    PopulateArray(&mykey, pA, 1024 * 4);
+                    /*for (int j = 0; j < 1024 * 4; j++)
                     {
                         distr[answer[j] / 100000000]++;
-                    }
+                    }*/
                 }
+            }
+
+            var tt = string.Join(",", answer.Take(40));
+            bool b = CalculateMD5Hash(tt) == "9BA4E243FD5D9854E727A56475F92A5F";
+
+            static string CalculateMD5Hash(string input)
+            {
+                // step 1, calculate MD5 hash from input
+                MD5 md5 = System.Security.Cryptography.MD5.Create();
+                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+                byte[] hash = md5.ComputeHash(inputBytes);
+
+                // step 2, convert byte array to hex string
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hash.Length; i++)
+                {
+                    sb.Append(hash[i].ToString("X2"));
+                }
+                return sb.ToString();
             }
         }
 
-        static void populateRandom_avx_xorshift128plus(avx_xorshift128plus_key_t* mykey,uint* answer, uint size)
+        static void PopulateArray(XorShiftState* mykey, uint* answer, uint size)
         {
             uint i = 0;
-            
+
             const uint blockSize = 8;
             while (i + blockSize <= size)
             {
-                _mm256_storeu_si256(answer + i, avx_xorshift128plus(mykey).AsUInt32());
+                _mm256_storeu_si256(answer + i, Next(mykey).AsUInt32());
                 i += blockSize;
             }
             if (i != size)
@@ -41,73 +64,79 @@ namespace IntrinsicsPrototyping
                 var buffer = new uint[blockSize];
                 fixed (uint* pBuffer = buffer)
                 {
-                    _mm256_storeu_si256(pBuffer, avx_xorshift128plus(mykey).AsUInt32());
+                    _mm256_storeu_si256(pBuffer, Next(mykey).AsUInt32());
                     Buffer.MemoryCopy(answer + i, pBuffer, sizeof(uint) * (size - i), size - i);
                 }
             }
         }
 
-        struct avx_xorshift128plus_key_t
+        public class SimdXorShiftRandom
         {
-            public Vector256<ulong> part1;
-            public Vector256<ulong> part2;
-        }
 
-        static void xorshift128plus_onkeys(ulong* ps0, ulong* ps1)
-        {
-            ulong s1 = *ps0;
-            ulong s0 = *ps1;
-            *ps0 = s0;
-            s1 ^= s1 << 23; // a
-            *ps1 = s1 ^ s0 ^ (s1 >> 18) ^ (s0 >> 5); // b, c
         }
-
-        static void xorshift128plus_jump_onkeys(ulong in1, ulong in2, ref ulong output1, ref ulong output2)
+        public struct XorShiftState
         {
-            var JUMP = new[] { 0x8a5cd789635d2dffUL, 0x121fd2155c472f96UL };
-            ulong s0 = 0;
-            ulong s1 = 0;
-            for (uint i = 0; i < 2; i++)
-                for (int b = 0; b < 64; b++)
+            public Vector256<ulong> Hi { get; set; }
+
+            public XorShiftState(Vector256<ulong> lo, Vector256<ulong> hi) => Hi = hi;
+
+            private static void ShiftKeys(ulong in1, ulong in2, out ulong output1, out ulong output2)
+            {
+                static void SwitchKeys(ref ulong key1, ref ulong key2)
                 {
-                    if ((JUMP[i] & 1UL << b) != 0)
-                    {
-                        s0 ^= in1;
-                        s1 ^= in2;
-                    }
-                    xorshift128plus_onkeys(&in1, &in2);
+                    ulong k1 = key1;
+                    ulong k2 = key2;
+                    key1 = k2;
+                    k1 ^= k1 << 23; // a
+                    key2 = k1 ^ k2 ^ (k1 >> 18) ^ (k2 >> 5); // b, c
                 }
-            output1 = s0;
-            output2 = s1;
+
+                Span<ulong> jump = stackalloc ulong[] { 0x8a5cd789635d2dffUL, 0x121fd2155c472f96UL };
+                ulong s0 = 0;
+                ulong s1 = 0;
+                for (int i = 0; i < 2; i++)
+                    for (int b = 0; b < 64; b++)
+                    {
+                        if ((jump[i] & 1UL << b) != 0)
+                        {
+                            s0 ^= in1;
+                            s1 ^= in2;
+                        }
+                        SwitchKeys(ref in1, ref in2);
+                    }
+                output1 = s0;
+                output2 = s1;
+            }
+
+            public static XorShiftState NewState(ulong seed1, ulong seed2)
+            {
+                Span<ulong> s0 = stackalloc ulong[4];
+                Span<ulong> s1 = stackalloc ulong[4];
+                s0[0] = seed1;
+                s1[0] = seed2;
+                ShiftKeys(s0[0], s1[0], out s0[1], out s1[1]);
+                ShiftKeys(s0[1], s1[1], out s0[2], out s1[2]);
+                ShiftKeys(s0[2], s1[2], out s0[3], out s1[3]);
+
+                fixed (ulong* p0 = s0)
+                fixed (ulong* p1 = s1)
+                    return new XorShiftState(Avx.LoadVector256(p0), Avx.LoadVector256(p1));
+            }
         }
-
-        static void avx_xorshift128plus_init(ulong key1, ulong key2,
-                  avx_xorshift128plus_key_t* key)
+        
+        public static Vector256<ulong> Next(XorShiftState* key)
         {
-            var S0 = new ulong[4];
-            var S1 = new ulong[4];
-            S0[0] = key1;
-            S1[0] = key2;
-            xorshift128plus_jump_onkeys(S0[0], S1[0], ref S0[1], ref S1[1]);
-            xorshift128plus_jump_onkeys(S0[1], S1[1], ref S0[2], ref S1[2]);
-            xorshift128plus_jump_onkeys(S0[2], S1[2], ref S0[3], ref S1[3]);
+            Vector256<ulong> oldHi = key->Hi;
+            
+            Vector256<ulong> xorShift = Avx2.Xor(oldHi, Avx2.ShiftLeftLogical(oldHi, 23));
+            
+            var newHi = Avx2.Xor(
+                Avx2.Xor(Avx2.Xor(xorShift, oldHi),
+                    Avx2.ShiftRightLogical(xorShift, 18)), Avx2.ShiftRightLogical(oldHi, 5));
 
-            fixed (ulong* p0 = S0)
-                key->part1 = _mm256_loadu_si256(p0);
-            fixed (ulong* p1 = S1)
-                key->part2 = _mm256_loadu_si256(p1);
-        }
+            key->Hi = newHi;
 
-        static Vector256<ulong> avx_xorshift128plus(avx_xorshift128plus_key_t* key)
-        {
-            Vector256<ulong> s1 = key->part1;
-            Vector256<ulong> s0 = key->part2;
-            key->part1 = key->part2;
-            s1 = _mm256_xor_si256(key->part2, _mm256_slli_epi64(key->part2, 23));
-            key->part2 = _mm256_xor_si256(
-                _mm256_xor_si256(_mm256_xor_si256(s1, s0),
-                    _mm256_srli_epi64(s1, 18)), _mm256_srli_epi64(s0, 5));
-            return _mm256_add_epi64(key->part2, s0);
+            return Avx2.Add(newHi, oldHi);
         }
 
 
