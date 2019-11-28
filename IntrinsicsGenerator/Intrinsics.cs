@@ -1,5 +1,4 @@
 ﻿//GENERATED == DO NOT EDIT
-
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 // ReSharper disable IdentifierTypo
@@ -2156,6 +2155,20 @@ namespace Fast
 
         public static unsafe Vector128<sbyte> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(sbyte* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
 
+        public static unsafe Vector128<byte> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(byte* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<short> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(short* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<ushort> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(ushort* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<int> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(int* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<uint> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(uint* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<long> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(long* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
+        public static unsafe Vector128<ulong> _mm_lddqu_si128/*Sse3.LoadDquVector128*/(ulong* address) => System.Runtime.Intrinsics.X86.Sse3.LoadDquVector128(address);
+
         public static Vector128<double> _mm_movedup_pd/*Sse3.MoveAndDuplicate*/(Vector128<double> source) => System.Runtime.Intrinsics.X86.Sse3.MoveAndDuplicate(source);
 
         public static Vector128<float> _mm_movehdup_ps/*Sse3.MoveHighAndDuplicate*/(Vector128<float> source) => System.Runtime.Intrinsics.X86.Sse3.MoveHighAndDuplicate(source);
@@ -2370,9 +2383,51 @@ namespace Fast
 
         public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<sbyte> left, Vector128<sbyte> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
 
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<byte> left, Vector128<byte> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<short> left, Vector128<short> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<ushort> left, Vector128<ushort> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<int> left, Vector128<int> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<uint> left, Vector128<uint> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<long> left, Vector128<long> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
+        public static bool _mm_testc_si128/*Sse41.TestC*/(Vector128<ulong> left, Vector128<ulong> right) => System.Runtime.Intrinsics.X86.Sse41.TestC(left, right);
+
         public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<sbyte> left, Vector128<sbyte> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
 
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<byte> left, Vector128<byte> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<short> left, Vector128<short> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<ushort> left, Vector128<ushort> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<int> left, Vector128<int> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<uint> left, Vector128<uint> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<long> left, Vector128<long> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
+        public static bool _mm_testnzc_si128/*Sse41.TestNotZAndNotC*/(Vector128<ulong> left, Vector128<ulong> right) => System.Runtime.Intrinsics.X86.Sse41.TestNotZAndNotC(left, right);
+
         public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<sbyte> left, Vector128<sbyte> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<byte> left, Vector128<byte> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<short> left, Vector128<short> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<ushort> left, Vector128<ushort> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<int> left, Vector128<int> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<uint> left, Vector128<uint> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<long> left, Vector128<long> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
+
+        public static bool _mm_testz_si128/*Sse41.TestZ*/(Vector128<ulong> left, Vector128<ulong> right) => System.Runtime.Intrinsics.X86.Sse41.TestZ(left, right);
 
         public static long _mm_extract_epi64/*Sse41.X64.Extract*/(Vector128<long> value, byte index) => System.Runtime.Intrinsics.X86.Sse41.X64.Extract(value, index);
 
