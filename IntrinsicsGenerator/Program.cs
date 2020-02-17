@@ -41,18 +41,23 @@ namespace IntrinsicsGenerator
         {
             using var fileStream = new FileStream(outFile, FileMode.Create, FileAccess.Write);
             using var writer = new StreamWriter(fileStream);
-
+            
             writer.WriteLine(@"//GENERATED == DO NOT EDIT
+using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
 // ReSharper disable UnusedMember.Global
 // ReSharper disable RedundantNameQualifier
+// ReSharper disable RedundantUnsafeContext
 
 // ReSharper disable once CheckNamespace
 namespace Fast
 {
+#pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CS3021 // Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
     public static class Intrinsics
     {");
 
@@ -63,7 +68,7 @@ namespace Fast
                 string newIdentifier = GetIdentifier(@class, instruction, method);
                 var newMethod = method.WithIdentifier(
                         SF.Identifier(newIdentifier)
-                            .WithTrailingTrivia(SF.Comment($"/*{@class}.{oldName}*/"))
+                            //.WithTrailingTrivia(SF.Comment($"/*{@class}.{oldName}*/"))
                         )
                     ;
 
@@ -103,8 +108,13 @@ namespace Fast
                 newMethod = newMethod.WithExpressionBody(SF.ArrowExpressionClause(SF.InvocationExpression(
                         call, SF.ArgumentList(callingArgs)
                         )
+                        .WithLeadingTrivia(SF.Space)
                     ));
 
+                newMethod = newMethod.WithParameterList(
+                    newMethod.ParameterList.WithTrailingTrivia(SF.Space)
+                );
+                
                 if (hadBody)
                     newMethod = newMethod.WithSemicolonToken(SF.Token(SyntaxKind.SemicolonToken));
 
@@ -129,9 +139,14 @@ namespace Fast
                 writer.WriteLine(newMethod.ToFullString());
             }
 
-            writer.WriteLine(@"    }
+            writer.WriteLine(@"#pragma warning restore IDE1006 // Naming Styles
+#pragma warning restore CS3021 // Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute
+    }
 }");
         }
+
+        private static readonly Regex _removeRoundPattern = new Regex("^Round",
+            RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
 
         private static string GetIdentifier(string @class, string instruction, MethodDeclarationSyntax method)
         {
@@ -139,14 +154,18 @@ namespace Fast
                 return $"{instruction}{method.Identifier.Text[^1]}";
 
             else if (@class == "Avx" && (instruction == "_mm256_round_ps" || instruction == "_mm256_round_pd"))
-                return $"{instruction}_{method.Identifier.Text}";
+                return $"{instruction}_{_removeRoundPattern.Replace(method.Identifier.Text, "")}";
 
             else if (@class == "Sse41" && (instruction == "_mm_round_sd" || instruction == "_mm_round_ss"))
-                return $"{instruction}_{method.Identifier.Text}";
+                return $"{instruction}_{_removeRoundPattern.Replace(method.Identifier.Text, "")}";
 
 
             return instruction;
         }
+
+        private static readonly Regex _vectorFilePattern = new Regex("^Vector\\d{2,3}$",
+            RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled);
+
 
         private static IList<(string Namespace, string Class, string Instruction, MethodDeclarationSyntax Method)> ProcessFolder(string dir)
         {
@@ -160,11 +179,13 @@ namespace Fast
                 var syntaxRoot = tree.GetRoot();
                 var classes = syntaxRoot.DescendantNodes()
                     .OfType<ClassDeclarationSyntax>()
-                    .Where(c => c.AttributeLists.Any(
-                        al => al.Attributes.Any(
-                            a => a.Name is IdentifierNameSyntax ins && ins.Identifier.Text == "Intrinsic"
+                    .Where(c =>
+                        _vectorFilePattern.IsMatch(c.Identifier.Text)
+                          ||
+                        c.AttributeLists.Any(al 
+                            => al.Attributes.Any(a => a.Name is IdentifierNameSyntax ins && ins.Identifier.Text == "Intrinsic")
                         )
-                    ));
+                    );
 
                 foreach (var @class in classes)
                 {
